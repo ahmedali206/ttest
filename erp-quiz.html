@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار: هل شركتك جاهزة لتطبيق نظام ERP؟</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        .quiz-option {
+            transition: all 0.2s ease-in-out;
+        }
+        .quiz-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .quiz-option.selected {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-8 max-w-4xl">
+        
+        <!-- Header -->
+        <div id="quiz-header" class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">اختبر جاهزية شركتك لتطبيق نظام ERP</h1>
+            <p class="text-lg text-gray-600">اكتشف في 5 دقائق ما إذا كان الوقت مناسبًا للاستثمار في نظام تخطيط موارد المؤسسات.</p>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quiz-container" class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg">
+            
+            <!-- Progress Bar -->
+            <div class="mb-6">
+                <div class="flex justify-between mb-1">
+                    <span class="text-base font-medium text-blue-700">التقدم</span>
+                    <span id="progress-text" class="text-sm font-medium text-blue-700">سؤال 1 من 10</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <!-- Question Area -->
+            <div id="question-area">
+                <h2 id="question-title" class="text-2xl font-bold mb-6 text-center"></h2>
+                <div id="options-container" class="grid grid-cols-1 gap-4">
+                    <!-- Options will be injected here by JS -->
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="mt-8 flex justify-between items-center">
+                <button id="prev-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-50" disabled>السابق</button>
+                <button id="next-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300">التالي</button>
+            </div>
+        </div>
+
+        <!-- Result Container -->
+        <div id="result-container" class="hidden text-center bg-white p-8 rounded-2xl shadow-lg">
+            <h2 class="text-3xl font-bold mb-4" id="result-title"></h2>
+            <div id="result-icon" class="text-6xl mb-4"></div>
+            <p class="text-lg text-gray-700 mb-2">مجموع نقاطك: <span id="result-score" class="font-bold"></span></p>
+            <!-- Changed p to div to allow for more complex HTML content -->
+            <div class="text-xl max-w-2xl mx-auto" id="result-description"></div>
+            <button onclick="location.reload()" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">إعادة الاختبار</button>
+        </div>
+
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "كيف تصف العمليات والإجراءات الحالية في شركتك؟",
+                options: [
+                    { text: "موحدة وموثقة بوضوح.", score: 2 },
+                    { text: "مفهومة لدى الفريق ولكنها غير مكتوبة.", score: 1 },
+                    { text: "عشوائية وتعتمد على كل موظف.", score: 0 }
+                ]
+            },
+            {
+                question: "كيف تدير بيانات العملاء والمبيعات والمخزون حاليًا؟",
+                options: [
+                    { text: "في نظام مركزي واحد (مثل CRM أو برنامج محاسبي).", score: 2 },
+                    { text: "في ملفات Excel متعددة ومنفصلة.", score: 1 },
+                    { text: "بشكل ورقي أو غير منظم.", score: 0 }
+                ]
+            },
+            {
+                question: "هل خصصت ميزانية لمشروع تكنولوجي كبير؟",
+                options: [
+                    { text: "نعم، لدينا ميزانية واضحة للمشروع.", score: 2 },
+                    { text: "نفكر في الأمر ولكن لم نحدد ميزانية بعد.", score: 1 },
+                    { text: "لا، لا توجد ميزانية متاحة حاليًا.", score: 0 }
+                ]
+            },
+            {
+                question: "ما مدى تقبل فريق عملك للتغيير وتبني أدوات جديدة؟",
+                options: [
+                    { text: "متحمسون ومستعدون للتعلم.", score: 2 },
+                    { text: "البعض متقبل والبعض الآخر مقاوم.", score: 1 },
+                    { text: "يقاومون أي تغيير في طرق العمل الحالية.", score: 0 }
+                ]
+            },
+            {
+                question: "ما هي خطط النمو لشركتك خلال الـ 3 سنوات القادمة؟",
+                options: [
+                    { text: "نتوقع نموًا كبيرًا ونحتاج نظامًا لدعمه.", score: 2 },
+                    { text: "نهدف لنمو معتدل.", score: 1 },
+                    { text: "نركز على الاستقرار حاليًا وليس النمو السريع.", score: 0 }
+                ]
+            },
+            {
+                question: "ما مدى سهولة الحصول على تقارير شاملة عن أداء الشركة؟",
+                options: [
+                    { text: "سهل جدًا، نستخدم أدوات مخصصة لذلك.", score: 2 },
+                    { text: "ممكن، ولكنه يتطلب جهدًا يدويًا كبيرًا لتجميع البيانات.", score: 1 },
+                    { text: "صعب جدًا أو مستحيل.", score: 0 }
+                ]
+            },
+            {
+                question: "كم من الوقت يُهدر في شركتك على المهام اليدوية المتكررة؟",
+                options: [
+                    { text: "قليل جدًا، معظم المهام مؤتمتة.", score: 2 },
+                    { text: "وقت ملحوظ، هناك مجال كبير للتحسين.", score: 1 },
+                    { text: "لا نعرف، لم نقم بقياس ذلك من قبل.", score: 0 }
+                ]
+            },
+            {
+                question: "كيف يتم التعاون ومشاركة المعلومات بين الأقسام المختلفة؟",
+                options: [
+                    { text: "بسلاسة عبر نظام مشترك.", score: 2 },
+                    { text: "عبر الإيميلات والاجتماعات، وأحيانًا تحدث أخطاء.", score: 1 },
+                    { text: "بشكل ضعيف، كل قسم يعمل بمعزل عن الآخر.", score: 0 }
+                ]
+            },
+            {
+                question: "هل لديك فريق أو شخص مسؤول عن تكنولوجيا المعلومات؟",
+                options: [
+                    { text: "نعم، لدينا فريق داخلي أو شريك خارجي متخصص.", score: 2 },
+                    { text: "لدينا شخص واحد يقوم بمهام متعددة منها الـ IT.", score: 1 },
+                    { text: "لا، نعتمد على حل المشاكل عند حدوثها فقط.", score: 0 }
+                ]
+            },
+            {
+                question: "من سيقود مشروع تطبيق النظام داخل الشركة؟",
+                options: [
+                    { text: "لدينا مدير مشروع محدد ومتحمس للمهمة.", score: 2 },
+                    { text: "سيتم تكليف أحد المدراء الحاليين بالإضافة لمهامه.", score: 1 },
+                    { text: "لم نفكر في هذا الأمر بعد.", score: 0 }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        const userAnswers = new Array(quizData.length).fill(null);
+
+        const questionTitleEl = document.getElementById('question-title');
+        const optionsContainerEl = document.getElementById('options-container');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultContainer = document.getElementById('result-container');
+
+        function loadQuestion() {
+            const currentQuestion = quizData[currentQuestionIndex];
+            questionTitleEl.textContent = currentQuestion.question;
+            optionsContainerEl.innerHTML = '';
+
+            currentQuestion.options.forEach((option, index) => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'quiz-option border-2 border-gray-300 p-4 rounded-lg cursor-pointer';
+                optionEl.textContent = option.text;
+                optionEl.dataset.score = option.score;
+                optionEl.onclick = () => selectOption(optionEl, index);
+
+                if (userAnswers[currentQuestionIndex] !== null && userAnswers[currentQuestionIndex].index === index) {
+                    optionEl.classList.add('selected');
+                }
+                optionsContainerEl.appendChild(optionEl);
+            });
+
+            updateNavigation();
+            updateProgress();
+        }
+
+        function selectOption(optionEl, optionIndex) {
+            const score = parseInt(optionEl.dataset.score);
+            userAnswers[currentQuestionIndex] = { index: optionIndex, score: score };
+            
+            const siblings = optionsContainerEl.children;
+            for (let i = 0; i < siblings.length; i++) {
+                siblings[i].classList.remove('selected');
+            }
+            
+            optionEl.classList.add('selected');
+            updateNavigation();
+        }
+
+        function updateNavigation() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            if (userAnswers[currentQuestionIndex] === null) {
+                nextBtn.disabled = true;
+                nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.textContent = 'أظهر النتيجة';
+            } else {
+                nextBtn.textContent = 'التالي';
+            }
+        }
+        
+        function updateProgress() {
+            const progressPercentage = ((currentQuestionIndex + 1) / quizData.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+            progressText.textContent = `سؤال ${currentQuestionIndex + 1} من ${quizData.length}`;
+        }
+
+        function showResults() {
+            const totalScore = userAnswers.reduce((sum, answer) => sum + (answer ? answer.score : 0), 0);
+            
+            const resultTitle = document.getElementById('result-title');
+            const resultDescription = document.getElementById('result-description');
+            const resultScore = document.getElementById('result-score');
+            const resultIcon = document.getElementById('result-icon');
+
+            resultScore.textContent = `${totalScore} من 20`;
+
+            if (totalScore >= 10) { // تم التعديل من 15 إلى 10
+                resultTitle.textContent = 'شركتك جاهزة للانطلاق!';
+                resultTitle.className = 'text-3xl font-bold mb-4 text-green-600';
+                resultIcon.innerHTML = '🚀';
+                resultDescription.innerHTML = `
+                    <p>لديك أساس قوي وعقلية مناسبة لتبني نظام ERP بنجاح.</p>
+                    <p class="mt-4 font-bold">نقترح عليك نظام <span class="text-blue-600">Pioneers ERP</span> كخطوة تالية مثالية.</p>
+                    <div class="mt-6">
+                        <a href="tel:01065666088" class="inline-flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition duration-300 text-lg shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            <span>تواصل مع المبيعات: 01065666088</span>
+                        </a>
+                    </div>
+                `;
+            } else if (totalScore >= 5) { // تم التعديل من 8 إلى 5
+                resultTitle.textContent = 'تحتاج إلى بعض التجهيزات';
+                resultTitle.className = 'text-3xl font-bold mb-4 text-yellow-500';
+                resultIcon.innerHTML = '🛠️';
+                resultDescription.innerHTML = '<p>أنت على الطريق الصحيح، لكن هناك بعض الجوانب التي تحتاج إلى تحسين قبل البدء. ركز على توحيد العمليات، تأمين الميزانية، وتهيئة فريقك للتغيير القادم.</p>';
+            } else {
+                resultTitle.textContent = 'قد لا يكون الوقت مناسبًا الآن';
+                resultTitle.className = 'text-3xl font-bold mb-4 text-red-600';
+                resultIcon.innerHTML = '✋';
+                resultDescription.innerHTML = '<p>تطبيق نظام ERP الآن قد يكون تحديًا كبيرًا. من الأفضل التركيز على بناء أسس أقوى لشركتك أولاً، مثل توثيق الإجراءات وتنظيم البيانات وتحسين التواصل بين الأقسام.</p>';
+            }
+
+            quizContainer.classList.add('hidden');
+            document.getElementById('quiz-header').classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (userAnswers[currentQuestionIndex] === null) return;
+
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        });
+
+        // Initial load
+        window.onload = () => {
+            loadQuestion();
+            updateNavigation();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار: هل نظام ERP هو الحل المناسب لمشاكل شركتك؟</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Neutral -->
+    <!-- Application Structure Plan: The application uses a single-page, multi-section structure to guide the user seamlessly. It starts with an introduction (Hero), moves to an interactive quiz grouped by business function (Quiz), and concludes with a dynamic results section (Result). This structure was chosen to transform a static text quiz into an engaging user journey. The user answers questions via radio buttons, and the score is calculated automatically, eliminating manual effort. A progress bar enhances engagement. The final result is presented visually with a chart and text, followed by a clear call-to-action, making the recommendation more impactful and actionable. -->
+    <!-- Visualization & Content Choices: 
+        1. Report Info: Quiz Questions -> Goal: Gather user input -> Viz/Presentation: Interactive form with radio buttons -> Interaction: User selection -> Justification: Intuitive, automates scoring, improves on static text -> Library/Method: HTML Form, JS.
+        2. Report Info: Final Score -> Goal: Inform user of their need-level -> Viz/Presentation: Horizontal Bar Chart + Score Text -> Interaction: Automatic display -> Justification: Visually represents the score, making it more digestible and impactful than just a number. Color-coding the bar (green/yellow/red) reinforces the recommendation. -> Library/Method: Chart.js (Canvas).
+        3. Report Info: Recommendations -> Goal: Provide tailored advice -> Viz/Presentation: Dynamic Text Blocks -> Interaction: Text appears based on score -> Justification: Delivers the core message of the source material directly and clearly. -> Library/Method: JS DOM Manipulation.
+        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 150px;
+            max-height: 200px;
+        }
+        .question-card {
+            transition: all 0.3s ease-in-out;
+            min-height: 350px;
+        }
+        .radio-custom {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            flex-shrink: 0;
+        }
+        .radio-custom:checked {
+            border-color: #2563eb;
+            background-color: #2563eb;
+        }
+        .radio-custom:checked::after {
+            content: '';
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        label {
+            cursor: pointer;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto px-4 py-8 md:py-12">
+
+        <!-- Hero Section -->
+        <header id="hero" class="text-center mb-12">
+            <h1 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4">هل نظام ERP هو الحل لمشاكلك؟</h1>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600">
+                تواجه العديد من الشركات تحديات في إدارة عملياتها اليومية. هذا الاختبار التفاعلي السريع سيساعدك على تقييم وضع شركتك الحالي وتحديد ما إذا كان تطبيق نظام تخطيط موارد المؤسسات (ERP) هو الخطوة الصحيحة لك.
+            </p>
+            <button onclick="startQuiz()" class="mt-8 bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors shadow-lg">
+                ابدأ الاختبار الآن
+            </button>
+        </header>
+
+        <!-- Quiz Section -->
+        <main id="quiz" class="hidden">
+            <div class="max-w-2xl mx-auto">
+                <div class="mb-4">
+                    <p id="progressText" class="text-center text-gray-600 mb-2"></p>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%; transition: width 0.5s ease-in-out;"></div>
+                    </div>
+                </div>
+
+                <div id="questionContainer">
+                    <!-- Question will be injected here -->
+                </div>
+
+                <div id="navigationButtons" class="flex justify-between items-center mt-8">
+                     <button id="prevBtn" onclick="navigateQuestion(-1)" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors">السابق</button>
+                     <button id="nextBtn" onclick="navigateQuestion(1)" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">التالي</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Result Section -->
+        <section id="result" class="hidden text-center max-w-4xl mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">نتيجتك النهائية</h2>
+            <p class="text-lg text-gray-700 mb-2">لقد حصلت على <span id="score" class="font-bold text-blue-600 text-2xl"></span> نقطة من 36.</p>
+            
+            <div class="chart-container my-8">
+                <canvas id="resultChart"></canvas>
+            </div>
+
+            <div id="recommendation" class="p-6 bg-white rounded-lg shadow-md border-t-4 border-blue-600">
+                <h3 id="recommendationTitle" class="text-2xl font-bold mb-3"></h3>
+                <p id="recommendationText" class="text-gray-600 leading-relaxed"></p>
+            </div>
+
+            <div id="cta" class="mt-12 p-8 bg-gray-100 rounded-lg border border-gray-200">
+                <h3 class="text-2xl font-bold mb-4">الخطوة التالية؟</h3>
+                <p class="text-lg text-gray-700 mb-6">
+                    بغض النظر عن نتيجتك، الحصول على استشارة من خبير هو دائمًا خطوة ذكية. نحن في <strong>Pioneers</strong> نقدم نظام <strong>Pioneers ERP</strong> المتكامل لمساعدتك على النمو.
+                </p>
+                <a href="tel:01065666088" class="inline-block bg-blue-600 text-white font-bold py-4 px-10 rounded-lg hover:bg-blue-700 transition-colors shadow-lg text-xl">
+                    تواصل مع المبيعات الآن <br> <span class="text-2xl tracking-wider">01065666088</span>
+                </a>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        const quizData = [
+            { category: "إدارة المخزون والمستودعات", question: "هل تواجه صعوبة في معرفة كميات المنتجات المتاحة في المخزون بشكل دقيق وفوري؟" },
+            { category: "إدارة المخزون والمستودعات", question: "هل تحدث حالات بيع لمنتجات غير متوفرة في المخزون (نفاد المخزون)؟" },
+            { category: "إدارة المخزون والمستودعات", question: "هل يستغرق الجرد اليدوي وقتًا طويلًا ويكشف عن فروقات كبيرة بين السجلات والواقع؟" },
+            { category: "الفواتير والشؤون المالية", question: "هل يتأخر إصدار الفواتير للعملاء، مما يؤثر على التدفق النقدي؟" },
+            { category: "الفواتير والشؤون المالية", question: "هل تجد صعوبة في تتبع الفواتير المستحقة والمدفوعات من العملاء؟" },
+            { category: "الفواتير والشؤون المالية", question: "هل عملية حساب التكاليف الفعلية للمنتج أو الخدمة معقدة وغير دقيقة؟" },
+            { category: "التقارير واتخاذ القرار", question: "هل يستغرق إعداد التقارير (مثل تقارير المبيعات، الأرباح، الأداء) أيامًا بدلًا من دقائق؟" },
+            { category: "التقارير واتخاذ القرار", question: "هل تشعر أن البيانات التي تعتمد عليها لاتخاذ القرارات غير متكاملة أو متضاربة؟" },
+            { category: "التقارير واتخاذ القرار", question: "هل من الصعب الحصول على رؤية شاملة لأداء الشركة دون الحاجة لدمج عدة ملفات Excel يدويًا؟" },
+            { category: "الكفاءة وتكرار المهام", question: "هل يقوم الموظفون في أقسام مختلفة بإدخال نفس البيانات بشكل متكرر في أنظمة مختلفة؟" },
+            { category: "الكفاءة وتكرار المهام", question: "هل تضيع الكثير من المعلومات الهامة بين الأقسام بسبب الاعتماد على التواصل الشفهي أو البريد الإلكتروني؟" },
+            { category: "الكفاءة وتكرار المهام", question: "هل تعاني من بطء في دورة العمل الكاملة (من استلام الطلب حتى تسليمه وتحصيل قيمته)؟" }
+        ];
+
+        const answers = [
+            { text: "نعم، هذه مشكلة كبيرة ومتكررة.", value: 3 },
+            { text: "تحدث أحيانًا وتسبب بعض التأخير.", value: 2 },
+            { text: "نادرًا ما تحدث، ولكنها موجودة.", value: 1 },
+            { text: "لا، لا نعاني من هذه المشكلة.", value: 0 }
+        ];
+
+        let currentQuestionIndex = 0;
+        const userAnswers = new Array(quizData.length).fill(null);
+        let resultChart = null;
+
+        function startQuiz() {
+            document.getElementById('hero').classList.add('hidden');
+            document.getElementById('quiz').classList.remove('hidden');
+            showQuestion(currentQuestionIndex);
+        }
+
+        function showQuestion(index) {
+            const questionData = quizData[index];
+            const container = document.getElementById('questionContainer');
+            container.innerHTML = ''; 
+
+            const card = document.createElement('div');
+            card.className = 'question-card bg-white p-6 md:p-8 rounded-lg shadow-md border border-gray-200 flex flex-col justify-center fade-in';
+
+            const categoryTitle = document.createElement('h2');
+            categoryTitle.className = 'text-xl font-bold text-blue-600 mb-4 text-center';
+            categoryTitle.textContent = questionData.category;
+            card.appendChild(categoryTitle);
+
+            const questionP = document.createElement('p');
+            questionP.className = 'font-bold text-xl md:text-2xl mb-6 text-center';
+            questionP.textContent = questionData.question;
+            card.appendChild(questionP);
+
+            const answersDiv = document.createElement('div');
+            answersDiv.className = 'space-y-3';
+            answers.forEach(answer => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center p-4 bg-gray-50 rounded-md border border-gray-200 hover:bg-blue-50 hover:border-blue-300';
+                
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = `question${index}`;
+                radio.value = answer.value;
+                radio.className = 'radio-custom';
+                radio.checked = (userAnswers[index] !== null && parseInt(radio.value) === userAnswers[index]);
+                
+                const span = document.createElement('span');
+                span.textContent = answer.text;
+
+                label.appendChild(radio);
+                label.appendChild(span);
+                answersDiv.appendChild(label);
+            });
+            card.appendChild(answersDiv);
+            container.appendChild(card);
+            updateProgress();
+            updateNavigationButtons();
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `السؤال ${currentQuestionIndex + 1} من ${quizData.length}`;
+        }
+        
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.textContent = 'اظهر النتيجة';
+                nextBtn.className = 'bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-colors';
+            } else {
+                nextBtn.textContent = 'التالي';
+                nextBtn.className = 'bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors';
+            }
+        }
+
+        function navigateQuestion(direction) {
+            const selectedAnswer = document.querySelector(`input[name="question${currentQuestionIndex}"]:checked`);
+            if (!selectedAnswer) {
+                alert('الرجاء اختيار إجابة للمتابعة.');
+                return;
+            }
+            userAnswers[currentQuestionIndex] = parseInt(selectedAnswer.value);
+
+            if (direction === 1 && currentQuestionIndex === quizData.length - 1) {
+                showResult();
+                return;
+            }
+
+            currentQuestionIndex += direction;
+            showQuestion(currentQuestionIndex);
+        }
+
+        function showResult() {
+            let totalScore = userAnswers.reduce((sum, val) => sum + (val || 0), 0);
+            document.getElementById('score').textContent = totalScore;
+
+            const recommendationTitle = document.getElementById('recommendationTitle');
+            const recommendationText = document.getElementById('recommendationText');
+            const recommendationBox = document.getElementById('recommendation');
+
+            let title, text, borderColor, chartColor;
+
+            if (totalScore >= 12) {
+                title = "نظام ERP هو الحل الأمثل لك";
+                text = "أنت تواجه تحديات جوهرية ومتكررة في كل جوانب عملك تقريبًا. الاعتماد على الأنظمة اليدوية أو البرامج المنفصلة يسبب لك خسارة في الوقت والمال ويحد من قدرتك على النمو. نظام ERP سيقوم بتوحيد جميع عملياتك، أتمتة المهام المتكررة، ومنحك رؤية فورية ودقيقة لأداء شركتك. إنه ليس رفاهية، بل ضرورة استراتيجية.";
+                borderColor = 'border-red-600';
+                chartColor = 'rgba(220, 38, 38, 0.7)';
+            } else if (totalScore >= 8) {
+                title = "نظام ERP قد يكون مفيدًا جزئيًا";
+                text = "شركتك تعاني من بعض المشاكل التي يمكن لنظام ERP حلها، خاصة في مناطق معينة مثل إدارة المخزون أو إعداد التقارير. قد لا تحتاج إلى تطبيق نظام كامل فورًا، ولكن يمكنك البدء بوحدات معينة تلبي احتياجاتك الأكثر إلحاحًا، ثم التوسع لاحقًا.";
+                borderColor = 'border-yellow-500';
+                chartColor = 'rgba(234, 179, 8, 0.7)';
+            } else {
+                title = "قد لا تحتاج إلى نظام ERP متكامل حاليًا";
+                text = "المشاكل التي تواجهها تبدو بسيطة ويمكن السيطرة عليها بالطرق الحالية. ربما يكون التركيز على تحسين بعض الإجراءات الداخلية أو استخدام برامج متخصصة وأقل تكلفة هو الخيار الأفضل لك في الوقت الحالي. راقب الوضع، وإذا زادت التحديات مع نمو الشركة، يمكنك إعادة تقييم حاجتك لاحقًا.";
+                borderColor = 'border-green-600';
+                chartColor = 'rgba(22, 163, 74, 0.7)';
+            }
+
+            recommendationTitle.textContent = title;
+            recommendationText.textContent = text;
+            recommendationBox.className = recommendationBox.className.replace(/border-(red|yellow|green)-600/g, borderColor);
+
+            document.getElementById('quiz').classList.add('hidden');
+            document.getElementById('result').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            const ctx = document.getElementById('resultChart').getContext('2d');
+            if(resultChart) resultChart.destroy();
+            
+            resultChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['مستوى الحاجة'],
+                    datasets: [{
+                        label: 'النقاط',
+                        data: [totalScore],
+                        backgroundColor: [chartColor],
+                        borderColor: [chartColor.replace('0.7', '1')],
+                        borderWidth: 1,
+                        barThickness: 50
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true, max: 36, grid: { display: false } },
+                        y: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
